@@ -4,4 +4,8 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/sentinel.sh
+User=sentinel
+ExecStart=/usr/local/bin/sentinel
+
+[Install]
+WantedBy=multi-user.target
