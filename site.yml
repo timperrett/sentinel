@@ -1,0 +1,10 @@
+#!/usr/bin/env ansible-playbook -i inventory.ini --skip-tags=bootstrap
+---
+- hosts: sentinel
+  gather_facts: true
+  remote_user: pi
+  become: yes
+  become_user: root
+  roles:
+    - utils
+    - sentinel
