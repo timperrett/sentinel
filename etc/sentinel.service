@@ -1,0 +1,6 @@
+[Unit]
+Description=Renders camera output to a file
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sentinel.sh
