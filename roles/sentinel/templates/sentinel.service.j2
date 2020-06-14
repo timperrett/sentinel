@@ -8,11 +8,10 @@ User=sentinel
 RemainAfterExit=no
 ExecStart=/usr/local/bin/sentinel \
 --title eventually.house \
---framerate 1920x1080 \
+--resolution 1920x1080 \
 --sftp-host {{ sftp_host }} \
 --sftp-username {{ sftp_username }} \
---sftp-password {{ sftp_password }} \
---disable-throttling
+--sftp-password {{ sftp_password }}
 
 [Install]
 WantedBy=multi-user.target

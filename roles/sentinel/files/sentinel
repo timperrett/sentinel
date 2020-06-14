@@ -10,7 +10,7 @@ SFTP_PASSWORD=
 SFTP_BASEDIR="/sentinel"
 UPLOAD_CADANCE="5" # in minutes
 
-CAPTURE_FRAMERATE='1920x1080'
+CAPTURE_RESOLUTION='1920x1080'
 CAPTURE_TITLE=""
 CAPTURE_FILEPATH="/tmp/sentinel.jpg"
 
@@ -23,7 +23,7 @@ function validate_dep(){
 }
 
 function capture(){
-    fswebcam -r "${CAPTURE_FRAMERATE}" \
+    fswebcam -r "${CAPTURE_RESOLUTION}" \
     --jpeg 85 -F 30 \
     --banner-colour \#000000 \
     --line-colour \#ffffff \
@@ -67,7 +67,7 @@ while (( "$#" )); do
       echo "Sentinel -- Available commands are as follows:"
       echo "  -x, --disable-sftp         Disable uploading to the SFP server [default: false]"
       echo "  -w, --disable-throttling   Disable the 5 minute upload cadence [default: false]"
-      echo "  -r, --framerate            Resolution to use for camera capture [default: 640x480]"
+      echo "  -r, --resolution           Resolution to use for camera capture [default: 640x480]"
       echo "  -t, --title                Title to include on the image banner [default: '']"
       echo "  -f, --filepath             Local filepath to use for camera capture [default: ${CAPTURE_FILEPATH}]"            
       echo "  -h, --sftp-host            Host to upload to. Domain only (e.g. your.host.com)"
@@ -134,9 +134,9 @@ while (( "$#" )); do
         exit 1
       fi
       ;;
-    -r|--framerate)
+    -r|--resolution)
       if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-        CAPTURE_FRAMERATE=$2
+        CAPTURE_RESOLUTION=$2
         shift 2
       else
         echo "Error: Argument for $1 is missing" >&2
