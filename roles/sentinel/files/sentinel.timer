@@ -1,5 +1,11 @@
 [Unit]
-Description=Run sentinel.service every 2 minutes
+Description=Run sentinel.service every 2 minutes between 0530 and 2030
 
 [Timer]
-OnCalendar=*:0/2
+OnCalendar=*-*-* 05:30..59:00
+OnCalendar=*-*-* 06..20:*:00
+OnCalendar=*-*-* 20:00..30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

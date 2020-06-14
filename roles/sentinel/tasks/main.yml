@@ -10,19 +10,33 @@
 
   - name: install sentinel systemd unit
     copy:
-      src: sentinel.service
-      dest: "{{ systemd_dir }}/sentinel.service"
+      src: "{{item}}"
+      dest: "{{ systemd_dir }}/{{item}}"
+    with_items:
+      - sentinel.service
+      - sentinel.timer
     notify:
       - reload systemd
     tags:
       - capture
 
-  - name: enable sentinel
+  - name: enable sentinel units
     service:
-      name: sentinel
+      name: "{{item}}"
       enabled: yes
+    with_items:
+      - sentinel.service
+      - sentinel.timer
     tags:
-      - capture
+      - transfer
+
+  - name: start the timer unit
+    service:
+      name: sentinel.timer
+      state: restarted
+    tags:
+      - transfer
+
   become: true
   become_user: root
 
@@ -46,6 +60,8 @@
     copy:
       src: sentinel-upload.path
       dest: "{{ systemd_dir }}/sentinel-upload.path"
+    notify:
+      - reload systemd
     tags:
       - transfer
 
@@ -56,7 +72,5 @@
     with_items:
       - sentinel-upload.service
       - sentinel-upload.path
-    notify:
-      - reload systemd
     tags:
       - transfer
