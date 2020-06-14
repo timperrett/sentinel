@@ -36,7 +36,7 @@ set sftp:auto-confirm yes
 set net:timeout 5
 set net:max-retries 2
 set net:reconnect-interval-base 5
-mkdir -p ${REMOTE_DIR}
+mkdir -f -p ${REMOTE_DIR}
 cd ${REMOTE_DIR}
 put /tmp/sentinel.jpg -o ${REMOTE_PATH}
 bye

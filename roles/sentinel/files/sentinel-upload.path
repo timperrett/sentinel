@@ -1,6 +1,0 @@
-[Path]
-PathChanged=/tmp/sentinel.jpg
-Unit=sentinel-upload.service
-
-[Install]
-WantedBy=multi-user.target

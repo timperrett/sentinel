@@ -1,0 +1,199 @@
+#!/bin/bash
+
+PARAMS=""
+
+DISABLE_SFTP=0
+DISABLE_THROTTLING=0
+SFTP_HOST=
+SFTP_USERNAME=
+SFTP_PASSWORD=
+SFTP_BASEDIR="/sentinel"
+UPLOAD_CADANCE="5" # in minutes
+
+CAPTURE_FRAMERATE='1920x1080'
+CAPTURE_TITLE=""
+CAPTURE_FILEPATH="/tmp/sentinel.jpg"
+
+function validate_dep(){
+    program="$1"
+    if [[ $(command -v "$program" | grep -c /) -eq 0 ]]; then
+        echo "FATAL: unable to find $program on the PATH. This program is required for sentinel operaiton"
+        exit 1
+    fi
+}
+
+function capture(){
+    fswebcam -r "${CAPTURE_FRAMERATE}" \
+    --jpeg 85 -F 30 \
+    --banner-colour \#000000 \
+    --line-colour \#ffffff \
+    --title "${CAPTURE_TITLE} ($(date +%B))" \
+    "${CAPTURE_FILEPATH}"
+
+    if [[ ! -f ${CAPTURE_FILEPATH} ]]; then
+        echo "FATAL: no capture output file found at ${CAPTURE_FILEPATH}; consider checking your permissions?"
+        exit 1
+    fi
+}
+
+calc(){ 
+    awk "BEGIN { print ""$*"" }"
+}
+
+transfer(){
+    remote_dir="${SFTP_BASEDIR}/$(date +%Y-%m-%d)"
+    remote_path="${remote_dir}/$(date +%Y-%m-%d-%H.%M.%S).jpg"
+
+    echo "--> uploading file ${CAPTURE_FILEPATH} to ${remote_path}"
+    lftp -u "${SFTP_USERNAME},${SFTP_PASSWORD}" "sftp://${SFTP_HOST}" <<EOF
+set sftp:auto-confirm yes
+set net:timeout 5
+set net:max-retries 2
+set net:reconnect-interval-base 5
+mkdir -f -p ${remote_dir}
+cd ${remote_dir}
+put ${CAPTURE_FILEPATH} -o ${remote_path}
+bye
+EOF
+}
+
+while (( "$#" )); do
+  case "$1" in
+    -x|--disable-sftp)
+      DISABLE_SFTP=1
+      shift
+      ;;
+    -?|--help)
+      echo "Sentinel -- Available commands are as follows:"
+      echo "  -x, --disable-sftp      Disable uploading to the SFP server [default: false]"
+      echo "  -r, --framerate         Resolution to use for camera capture [default: 640x480]"
+      echo "  -t, --title             Title to include on the image banner [default: '']"
+      echo "  -f, --filepath          Local filepath to use for camera capture [default: ${CAPTURE_FILEPATH}]"            
+      echo "  -h, --sftp-host         Host to upload to. Domain only (e.g. your.host.com)"
+      echo "  -u, --sftp-username     Username to use when authenticating with SFTP host"
+      echo "  -p, --sftp-password     Password to use when authenticating with SFTP host"
+      echo "  -b, --sftp-basedir      Base path to use on the SFTP host (e.g. /foo/bar)"
+      exit 0
+      ;;
+    -x|--disable-throttling)
+      DISABLE_THROTTLING=1
+      shift
+      ;;
+    -b|--sftp-basedir)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        SFTP_BASEDIR=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -p|--sftp-password)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        SFTP_PASSWORD=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -u|--sftp-username)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        SFTP_USERNAME=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -h|--sftp-host)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        SFTP_HOST=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -f|--filepath)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        CAPTURE_FILEPATH=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -t|--title)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        CAPTURE_TITLE=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -r|--framerate)
+      if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+        CAPTURE_FRAMERATE=$2
+        shift 2
+      else
+        echo "Error: Argument for $1 is missing" >&2
+        exit 1
+      fi
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+validate_dep "fswebcam"
+validate_dep "lftp"
+validate_dep "date"
+
+touch "${CAPTURE_FILEPATH}" > /dev/null 2>&1
+if [[ "$?" == "1" ]]; then
+    echo "FATAL: unable to write to ${CAPTURE_FILEPATH}. Be sure that you have permissions"
+    echo "       and that the directories leading up to the path exist"
+    exit 1
+fi
+
+if [[ ${DISABLE_SFTP} -eq 0 ]]; then
+    # capture + upload
+    if [[ -z $SFTP_HOST || -z $SFTP_USERNAME || -z $SFTP_PASSWORD ]]; then
+        echo "FATAL: --sftp-host, --sftp-username and --sftp-password are required when uploading is enabled."
+        echo "If you do not wish to upload camera content, please pass --disable-sftp"
+        exit 1
+    fi
+
+    # automatically validates that there is file from the output
+    capture
+
+    if [[ ${DISABLE_THROTTLING} -eq 1 ]]; then
+        transfer
+    else 
+        # in order to throttle the amount of uploads we have (and 
+        # therefore consumption of bandwidth), artificially eliminate
+        # actions that happen on minutes that are not in ${UPLOAD_CADANCE}
+        # minutely divisions.
+        if [[ $(calc $(date +%M)%${UPLOAD_CADANCE}) == 0 ]]; then 
+          # attempt to upload to the specified SFTP site
+          transfer
+        else 
+            echo "--> skipping transfer to conserve bandwidth due to upload cadence of ${UPLOAD_CADANCE} minutes"; 
+        fi
+    fi
+else
+    # just capture and write to local file 
+    capture
+    echo "--> frame written to ${CAPTURE_FILEPATH}"
+fi

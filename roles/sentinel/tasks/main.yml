@@ -2,11 +2,11 @@
 - block:
   - name: install sentinel script
     copy:
-      src: sentinel.sh
+      src: sentinel
       dest: "/usr/local/bin/sentinel"
       mode: 0775
     tags:
-      - capture
+      - sentinel
 
   - name: install sentinel systemd unit
     copy:
@@ -18,7 +18,7 @@
     notify:
       - reload systemd
     tags:
-      - capture
+      - sentinel
 
   - name: enable sentinel units
     service:
@@ -28,49 +28,14 @@
       - sentinel.service
       - sentinel.timer
     tags:
-      - transfer
+      - sentinel
 
   - name: start the timer unit
     service:
       name: sentinel.timer
       state: restarted
     tags:
-      - transfer
+      - sentinel
 
   become: true
   become_user: root
-
-- block:
-  - name: install sentinel-upload script
-    copy:
-      src: sentinel-upload.sh
-      dest: "/usr/local/bin/sentinel-upload"
-      mode: 0775
-    tags:
-      - transfer
-
-  - name: install sentinel-upload.service
-    template:
-      src: sentinel-upload.service.j2
-      dest: "{{ systemd_dir }}/sentinel-upload.service"
-    tags:
-      - transfer
-
-  - name: install sentinel-upload.path
-    copy:
-      src: sentinel-upload.path
-      dest: "{{ systemd_dir }}/sentinel-upload.path"
-    notify:
-      - reload systemd
-    tags:
-      - transfer
-
-  - name: enable sentinel-upload units
-    service:
-      name: "{{item}}"
-      enabled: yes
-    with_items:
-      - sentinel-upload.service
-      - sentinel-upload.path
-    tags:
-      - transfer
