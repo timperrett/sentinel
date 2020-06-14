@@ -65,17 +65,18 @@ while (( "$#" )); do
       ;;
     -?|--help)
       echo "Sentinel -- Available commands are as follows:"
-      echo "  -x, --disable-sftp      Disable uploading to the SFP server [default: false]"
-      echo "  -r, --framerate         Resolution to use for camera capture [default: 640x480]"
-      echo "  -t, --title             Title to include on the image banner [default: '']"
-      echo "  -f, --filepath          Local filepath to use for camera capture [default: ${CAPTURE_FILEPATH}]"            
-      echo "  -h, --sftp-host         Host to upload to. Domain only (e.g. your.host.com)"
-      echo "  -u, --sftp-username     Username to use when authenticating with SFTP host"
-      echo "  -p, --sftp-password     Password to use when authenticating with SFTP host"
-      echo "  -b, --sftp-basedir      Base path to use on the SFTP host (e.g. /foo/bar)"
+      echo "  -x, --disable-sftp         Disable uploading to the SFP server [default: false]"
+      echo "  -w, --disable-throttling   Disable the 5 minute upload cadence [default: false]"
+      echo "  -r, --framerate            Resolution to use for camera capture [default: 640x480]"
+      echo "  -t, --title                Title to include on the image banner [default: '']"
+      echo "  -f, --filepath             Local filepath to use for camera capture [default: ${CAPTURE_FILEPATH}]"            
+      echo "  -h, --sftp-host            Host to upload to. Domain only (e.g. your.host.com)"
+      echo "  -u, --sftp-username        Username to use when authenticating with SFTP host"
+      echo "  -p, --sftp-password        Password to use when authenticating with SFTP host"
+      echo "  -b, --sftp-basedir         Base path to use on the SFTP host (e.g. /foo/bar)"
       exit 0
       ;;
-    -x|--disable-throttling)
+    -w|--disable-throttling)
       DISABLE_THROTTLING=1
       shift
       ;;

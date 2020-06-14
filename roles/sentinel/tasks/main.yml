@@ -8,13 +8,17 @@
     tags:
       - sentinel
 
+  - name: install sentinel.service
+    template:
+      src: sentinel.service.j2
+      dest: "{{ systemd_dir }}/sentinel.service"
+    tags:
+      - sentinel
+
   - name: install sentinel systemd unit
     copy:
-      src: "{{item}}"
-      dest: "{{ systemd_dir }}/{{item}}"
-    with_items:
-      - sentinel.service
-      - sentinel.timer
+      src: sentinel.timer
+      dest: "{{ systemd_dir }}/sentinel.timer"
     notify:
       - reload systemd
     tags:
