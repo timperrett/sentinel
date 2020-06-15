@@ -28,6 +28,8 @@ In order to follow along with this build, you would need to have the following c
 - [Raspberry Pi](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/); i'm using v3B
 - [LTE shield](https://community.sixfab.com/c/raspberry-pi-hats/cellular-iot-hat/)
 - [Waterproof grommets sufficient large for your cabling](https://www.amazon.com/gp/product/B01GJ03AUQ/ref=ppx_od_dt_b_asin_title_s00?ie=UTF8&psc=1)
+- [Low profile 4.6dBi antenna](https://sixfab.com/product/lte-antenna-sma-high-gain-71mm/)
+- [Waterproof SMA to u.FL RF Adaptor](https://sixfab.com/product/waterproof-sma-to-u-fl-rf-adapter-cable/)
 - 14AWG stranded cabling for power
 - 14AWG female spade connectors
 - 2x DC inline fuses
@@ -39,12 +41,28 @@ In order to follow along with this build, you would need to have the following c
 
 ## Hardware Build
 
-1. Install the LTE shield 
-2. 
+1. Install the LTE shield using [the Sixfab instructions](https://docs.sixfab.com/docs/raspberry-pi-cellular-iot-hat-introduction)
+
+### Weatherproof penetrations
+
+Given we need to get power to our Pi, and the solar controller, and allow for the antenna to get signal, we have to carefully make penetrations in the mounting box. This is done by drilling holes in the box that match the diameter of your grommets. You'll want to drill pilot holds and progressively make the hole bigger and bigger, instead of drilling one big hole to avoid breaking the box wall. Here are some pictures of the finished penetrations with wires run through:
+
+![Sealed Box Penetrations](https://raw.githubusercontent.com/timperrett/sentinel/master/docs/img/IMG_3792.jpeg)
+
+The antenna is a big of a special case: it comes with a rubberized gasket integrated onto the SMA socket so you can carefully drill a whole that is the right size for the socket and then screw it back together. I decided to go with a low-profile antenna, you may need something different if you're in an area with poor signal.
+
+![Sealed Antenna](https://raw.githubusercontent.com/timperrett/sentinel/master/docs/img/IMG_3787.jpeg)
+
+Internally, the box I was using had a hand bread board style mounting plate which allowed me to secure the various pieces in a fairly orderly fashion. In the end, my box internals looked like this:
+
+![Box Internals](https://raw.githubusercontent.com/timperrett/sentinel/master/docs/img/IMG_3794.jpeg)
+
+I had a nightmare of a time with the USB cable for the camera and just couldn't fit it through the grommet so I ended up carefully cutting off the casing for the USB plug so that it could fit. I then used electrical tape to seal up the area that was previosuly cased on the cable as a precaution. 
+
 
 ## Software Deployment
 
-There is a set of initial setup that must be done manually to get the Pi's accessible remotely (and availalbe for automatic provisioning). I used the following steps to get the nodes going:
+There is a set of initial setup that must be done manually to get the Pi's accessible remotely (and available for automatic provisioning). I used the following steps to get the nodes going:
 
 ```
 # set a new root password
