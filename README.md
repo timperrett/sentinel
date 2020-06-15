@@ -4,6 +4,7 @@
 
 + [Preamble](#preamble)
 + [Hardware Build](#hardware-build)
++ [Software Deployment](#software-deployment)
 
 ## Preamble
 
@@ -15,7 +16,7 @@ In order to follow along with this build, you would need to have the following c
 
 2. This setup targets the daylight hours, and does not take pictures at night, even though my camera has IR for night imaging. This is purely to reduce bandwidth for my particular use-case.
 
-3. Working with a 5 minute cadence should yield roughly 
+3. Working with a 5 minute cadence should yield roughly 180 images per day (assuming 15 hours of capture operaton), which should yield one day passing in 7 seconds of video, assuming 1080p @ 24fps. By contrast, a year worth of content would yield around 45 minutes of video if all frames are usable (which they won't be during the winter due to contracted periods of daylight).
 
 ### Parts List
 
@@ -57,8 +58,7 @@ Internally, the box I was using had a hand bread board style mounting plate whic
 
 ![Box Internals](https://raw.githubusercontent.com/timperrett/sentinel/master/docs/img/IMG_3794.jpeg)
 
-I had a nightmare of a time with the USB cable for the camera and just couldn't fit it through the grommet so I ended up carefully cutting off the casing for the USB plug so that it could fit. I then used electrical tape to seal up the area that was previosuly cased on the cable as a precaution. 
-
+I had a nightmare of a time with the USB cable for the camera and just couldn't fit it through the grommet so I ended up carefully cutting off the casing for the USB plug so that it could fit. I then used electrical tape to seal up the area that was previosuly cased on the cable as a precaution.
 
 ## Software Deployment
 
@@ -83,3 +83,21 @@ $ sudo systemctl enable ssh && \
 $ sudo apt-get install -y htop
 
 ```
+
+#### Site Playbook
+
+Once you've bootstrapped your pi and you can SSH with your key, then one can simply run the ansible site plays, and let it install all the nessicary gubbins for sentinel.
+
+```
+./site.yml
+```
+
+#### Debugging
+
+Sentinel is implemented as a script ([found here](https://github.com/timperrett/sentinel/blob/master/roles/sentinel/files/sentinel)) and a pair of system units to trigger execution. The script has a few handy switches (see all options using `--help`):
+
++ `--disable-sftp` Disable uploading to the SFP server; this can be especially useful if you are debugging the setup with your camera and do not care about uploading.
++ `--disable-throttling` Disables the upload on 5 minutely windows; with the systemd units implemented as is here, this will result in uploading every minute. This can be helpful for debuging or if you simply want closer to real-time imaging.
+
+As these are regular systemd units, you can inspect their output using `journalctl -u sentinel.service -e` for the sentinel unit itself, or `systemctl list-timers --all` if you want to checkout the last/next execution of the timer.
+
